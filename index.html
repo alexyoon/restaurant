@@ -1,0 +1,815 @@
+<title>오늘 한잔</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+
+  :root{
+    --bg:#FBF1E4; --surface:#FFFFFF; --surface-2:#FFF8EE;
+    --ink:#2A1B14; --muted:#8C7362; --accent:#C33C2C; --accent-2:#E2932F;
+    --line:#E8DCC8; --shadow: 0 10px 30px -12px rgba(42,27,20,.28);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1B120D; --surface:#241A13; --surface-2:#2C2018;
+      --ink:#F3E7D8; --muted:#C2A992; --accent:#E2543C; --accent-2:#F0A94A;
+      --line:#3A2B20; --shadow: 0 10px 30px -12px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1B120D; --surface:#241A13; --surface-2:#2C2018;
+    --ink:#F3E7D8; --muted:#C2A992; --accent:#E2543C; --accent-2:#F0A94A;
+    --line:#3A2B20; --shadow: 0 10px 30px -12px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--ink); font-family:'Noto Sans KR',system-ui,sans-serif; margin:0;}
+  h1,h2,h3,.display{font-family:'Gowun Batang',serif;}
+  h2{font-size:clamp(1.5rem,3vw,2.2rem); text-wrap:balance; margin:0 0 .3em;}
+  p{line-height:1.7;}
+  a{color:inherit;}
+  .wrap{max-width:1120px; margin:0 auto; padding-inline:20px;}
+  .eyebrow{font-size:.8rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700;}
+
+  header.site{ position:sticky; top:env(safe-area-inset-top,0px); z-index:40; }
+  .topbar{
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+    padding:12px 20px; background:var(--accent-2); color:#2A1B0E;
+  }
+  .hamburger{background:none; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; width:26px; height:26px; padding:0; color:inherit;}
+  .hamburger svg{width:22px; height:22px;}
+  .brand{justify-self:center; font-family:'Gowun Batang',serif; font-size:1.15rem; font-weight:700; letter-spacing:.02em; white-space:nowrap;}
+  .topbar-right{justify-self:end; font-size:.85rem; font-weight:700; text-decoration:none;}
+  .subnav{
+    display:flex; align-items:center; gap:24px; padding:12px 20px;
+    background:var(--surface); border-bottom:1px solid var(--line);
+    font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; font-weight:700;
+  }
+  .subnav a{text-decoration:none; padding:4px 2px; border-bottom:2px solid transparent;}
+  .subnav a:hover{border-color:var(--accent);}
+  .subnav a.cta{margin-left:auto; background:var(--accent); color:#fff; padding:8px 16px; border-radius:999px; letter-spacing:.02em;}
+  @media (max-width:760px){ .subnav{display:none;} }
+  .mobileMenu{display:flex; flex-direction:column; background:var(--surface);}
+  .mobileMenu a{padding:12px 20px; text-decoration:none; font-weight:700; font-size:.9rem; border-top:1px solid var(--line); color:var(--ink);}
+
+  .hero{position:relative; height:min(88vh,880px); min-height:460px; overflow:hidden;}
+  .slide{position:absolute; inset:0; opacity:0; transition:opacity 1s ease; display:flex; align-items:center; justify-content:center;}
+  .slide.active{opacity:1;}
+  .slide .ph{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:#fff;}
+  .hero-img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  .slide:nth-of-type(1) .ph{background:linear-gradient(135deg,#C33C2C,#8C2418);}
+  .slide:nth-of-type(2) .ph{background:linear-gradient(135deg,#E2932F,#B5651D);}
+  .slide:nth-of-type(3) .ph{background:linear-gradient(135deg,#7A3B2E,#3E1F17);}
+  .ph svg{width:64px; height:64px; opacity:.85;}
+  .ph span{font-size:.95rem; opacity:.85; letter-spacing:.04em;}
+  .hero::after{content:"";position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.55)); pointer-events:none;}
+  .hero-copy{position:absolute; left:0; right:0; bottom:48px; text-align:center; color:#fff; z-index:2; padding-inline:20px;}
+  .hero-copy .eyebrow{color:#F4D9B8;}
+  .hero-copy h1{font-size:clamp(2.1rem,5vw,3.6rem); margin:.2em 0; text-shadow:0 4px 24px rgba(0,0,0,.35);}
+  .hero-copy p{max-width:520px; margin:0 auto; opacity:.92;}
+  .dots{position:absolute; bottom:16px; left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:2;}
+  .dots button{width:8px; height:8px; border-radius:99px; border:none; background:rgba(255,255,255,.5); cursor:pointer; padding:0;}
+  .dots button.active{background:#fff; width:22px;}
+  .hero-arrow{position:absolute; top:50%; transform:translateY(-50%); z-index:2; width:44px; height:44px; border-radius:50%; border:1.5px solid rgba(255,255,255,.6); background:rgba(0,0,0,.15); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .hero-arrow:hover{background:rgba(0,0,0,.32);}
+  .hero-arrow.prev{left:20px;} .hero-arrow.next{right:20px;}
+  .hero-arrow svg{width:20px; height:20px;}
+  @media (max-width:640px){ .hero-arrow{display:none;} }
+
+  section{padding-block:64px;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:28px; flex-wrap:wrap;}
+  .section-head p{color:var(--muted); margin:6px 0 0; max-width:480px;}
+
+  .menu-viewport{overflow:hidden; border-radius:20px;}
+  .menu-track{display:flex; gap:20px; transition:transform .7s cubic-bezier(.4,0,.2,1);}
+  .menu-card{flex:0 0 calc((100% - 40px)/3); min-width:220px; background:var(--surface); border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:var(--shadow); cursor:pointer;}
+  .menu-photo{aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; color:#fff; position:relative; overflow:hidden;}
+  .menu-photo img{width:100%; height:100%; object-fit:cover; display:block;}
+  .best-badge{position:absolute; top:10px; left:10px; z-index:2; background:linear-gradient(135deg,#F3D27A,#C99A32); color:#3A2A05; font-size:.72rem; font-weight:800; letter-spacing:.03em; padding:5px 10px 5px 8px; border-radius:999px; display:flex; align-items:center; gap:4px; box-shadow:0 4px 10px -4px rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.5);}
+  .menu-card:nth-of-type(1) .menu-photo{background:linear-gradient(150deg,#D9583F,#8C2418);}
+  .menu-card:nth-of-type(2) .menu-photo{background:linear-gradient(150deg,#EFA43F,#B5651D);}
+  .menu-card:nth-of-type(3) .menu-photo{background:linear-gradient(150deg,#8C6A4A,#3E1F17);}
+  .menu-photo svg{width:44px; height:44px; opacity:.85;}
+  .menu-info{padding:16px 18px 20px;}
+  .menu-info .name{font-weight:700; font-size:1.05rem;}
+  .menu-info .price{color:var(--accent); font-weight:700; margin-top:2px;}
+  .menu-info .desc{color:var(--muted); font-size:.88rem; margin-top:6px;}
+  @media (max-width:720px){ .menu-card{flex:0 0 calc(100% - 20px);} }
+
+  .gallery{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  .gallery .g{border-radius:16px; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; color:#fff; position:relative; overflow:hidden;}
+  .gallery .g svg{width:34px; height:34px; opacity:.8;}
+  .gallery .g img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;}
+  .gallery .g:has(img)::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.62) 100%); z-index:1;}
+  .gallery .g span{position:absolute; bottom:10px; left:14px; font-size:.78rem; opacity:.95; letter-spacing:.02em; z-index:2; font-weight:600;}
+  .gallery .g:nth-child(4n+1){background:linear-gradient(160deg,#C33C2C,#7A2418);}
+  .gallery .g:nth-child(4n+2){background:linear-gradient(160deg,#E2932F,#A8631C);}
+  .gallery .g:nth-child(4n+3){background:linear-gradient(160deg,#7A3B2E,#3E1F17);}
+  .gallery .g:nth-child(4n+4){background:linear-gradient(160deg,#4A5A3E,#2B3524);}
+  .gallery .g.big{grid-column:span 2; aspect-ratio:21/9;}
+  @media (max-width:720px){ .gallery{grid-template-columns:1fr;} .gallery .g.big{grid-column:span 1; aspect-ratio:16/9;} }
+
+  .info-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:28px;}
+  @media (max-width:800px){ .info-grid{grid-template-columns:1fr;} }
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:26px; box-shadow:var(--shadow);}
+  .info-list{display:flex; flex-direction:column; gap:14px; margin-top:6px;}
+  .info-row{display:flex; gap:12px; align-items:flex-start;}
+  .info-row svg{width:20px; height:20px; flex:none; margin-top:2px; color:var(--accent);}
+  .info-row .k{font-weight:700; font-size:.85rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+
+  .review-card{background:linear-gradient(150deg,var(--surface-2),var(--surface)); border:1px dashed var(--accent-2);}
+  .stars{display:flex; gap:4px; margin-bottom:10px;}
+  .stars svg{width:20px; height:20px; color:var(--accent-2);}
+  .btn{display:inline-flex; align-items:center; gap:8px; background:var(--accent); color:#fff; border:none; padding:12px 20px; border-radius:999px; font-weight:700; font-size:.92rem; cursor:pointer; text-decoration:none;}
+  .btn.ghost{background:transparent; color:var(--ink); border:1.5px solid var(--line);}
+  .btn.wide{width:100%; justify-content:center;}
+  .btn svg{width:16px; height:16px;}
+
+  .coupon{margin-top:0;}
+  .coupon-box{display:grid; grid-template-columns:1fr 1fr; gap:0; border-radius:22px; overflow:hidden; box-shadow:var(--shadow);}
+  @media (max-width:800px){ .coupon-box{grid-template-columns:1fr;} }
+  .coupon-left{background:linear-gradient(150deg,var(--accent),#8C2418); color:#fff; padding:34px; display:flex; flex-direction:column; justify-content:center; gap:10px;}
+  .coupon-left h3{font-size:1.5rem; margin:0;}
+  .steps{list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:12px;}
+  .steps li{display:flex; gap:12px; align-items:flex-start; font-size:.92rem; opacity:.95;}
+  .steps .num{flex:none; width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.4); display:flex; align-items:center; justify-content:center; font-size:.78rem; font-weight:700;}
+  .coupon-right{background:var(--surface); padding:34px;}
+  .coupon-right form{display:flex; flex-direction:column; gap:12px;}
+  .coupon-right input, .coupon-right textarea{padding:11px 13px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit;}
+  .coupon-right label{font-size:.82rem; color:var(--muted); font-weight:600;}
+  .note{font-size:.78rem; color:var(--muted); margin-top:10px; line-height:1.6;}
+
+  footer{padding:36px 0 48px; text-align:center; color:var(--muted); font-size:.85rem; border-top:1px solid var(--line);}
+
+  .fab{position:fixed; right:20px; bottom:calc(20px + env(safe-area-inset-bottom,0px)); z-index:60;}
+  .fab-btn{width:58px; height:58px; border-radius:50%; background:#FEE500; border:none; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .fab-btn svg{width:30px; height:30px; color:#3C1E1E;}
+  .fab-panel{position:absolute; right:0; bottom:70px; width:min(320px,88vw); background:var(--surface); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); padding:18px; display:none;}
+  .fab-panel.open{display:block;}
+  .fab-panel h4{margin:0 0 10px; font-size:1rem;}
+  .fab-panel .chan{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--line); font-size:.9rem;}
+  .fab-panel .chan:first-of-type{border-top:none;}
+  .fab-panel form{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .fab-panel input{padding:9px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit; font-size:.85rem;}
+  .fab-panel .row2{display:flex; gap:8px;}
+  .fab-panel .row2 input{flex:1; min-width:0;}
+
+  .modal-backdrop{position:fixed; inset:0; background:rgba(20,12,8,.6); display:none; align-items:center; justify-content:center; z-index:80; padding:20px;}
+  .modal-backdrop.open{display:flex;}
+  .modal{background:var(--surface); border-radius:20px; max-width:520px; width:100%; overflow:hidden; box-shadow:var(--shadow);}
+  .modal .ph-big{height:280px; display:flex; align-items:center; justify-content:center; color:#fff;}
+  .modal .body{padding:22px;}
+  .modal .close{float:right; background:none; border:none; font-size:1.3rem; cursor:pointer; color:var(--muted);}
+
+  .toast{position:fixed; left:50%; bottom:30px; transform:translate(-50%,20px); background:var(--ink); color:var(--bg); padding:12px 20px; border-radius:999px; font-size:.88rem; opacity:0; transition:all .3s; z-index:100; pointer-events:none;}
+  .toast.show{opacity:1; transform:translate(-50%,0);}
+</style>
+
+<header class="site">
+  <div class="topbar">
+    <button class="hamburger" id="hamburgerBtn" aria-label="메뉴 열기" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/></svg>
+    </button>
+    <div class="brand">오늘 한잔</div>
+    <a class="topbar-right" href="#event">예약</a>
+  </div>
+  <nav class="subnav">
+    <a href="#menu">메뉴</a>
+    <a href="#gallery">갤러리</a>
+    <a href="#event">이벤트</a>
+    <a href="#info">오시는 길</a>
+    <a id="reviewLink" class="cta" href="https://map.naver.com/p/entry/place/여기에_스마트플레이스_ID?c=review" target="_blank" rel="noopener">Review</a>
+  </nav>
+  <nav class="mobileMenu" id="mobileMenu" hidden>
+    <a href="#menu">메뉴</a>
+    <a href="#gallery">갤러리</a>
+    <a href="#event">이벤트</a>
+    <a href="#info">오시는 길</a>
+    <a href="https://map.naver.com/p/entry/place/여기에_스마트플레이스_ID?c=review" target="_blank" rel="noopener">Review</a>
+  </nav>
+</header>
+
+<section class="hero" id="hero">
+  <div class="slide active"><img class="hero-img" src="pub-exterior.png" alt="오늘, 한잔 매장 전경"></div>
+  <div class="slide"><img class="hero-img" src="pub-interior.png" alt="오늘, 한잔 홀 내부"></div>
+  <div class="slide"><img class="hero-img" src="group-table.png" alt="오늘, 한잔 단체석"></div>
+  <div class="hero-copy">
+    <div class="eyebrow">좋은 사람과 좋은 시간</div>
+    <h1>오늘 한잔</h1>
+    <p>숯불 향 가득한 안주와 시원한 한 잔이 있는 곳</p>
+  </div>
+  <button class="hero-arrow prev" id="heroPrev" aria-label="이전 사진"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button class="hero-arrow next" id="heroNext" aria-label="다음 사진"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></button>
+  <div class="dots"></div>
+</section>
+
+<section id="menu">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="eyebrow">Best Menu</div><h2>손님들이 가장 많이 찾는 메뉴</h2></div>
+      <p>사진을 누르면 크게 볼 수 있어요.</p>
+    </div>
+    <div class="menu-viewport">
+      <div class="menu-track" id="menuTrack">
+        <div class="menu-card" data-name="숯불 닭갈비" data-price="18,000원" data-desc="매콤한 양념과 숯불의 향이 어우러진, 술이 절로 생각나는 대표 메뉴.">
+          <div class="menu-photo"><span class="best-badge">★ BEST</span><img src="menu-main-1.png" alt="숯불 닭갈비" loading="lazy"></div>
+          <div class="menu-info"><div class="name">숯불 닭갈비</div><div class="price">18,000원</div><div class="desc">불맛 가득한 매콤 숯불 닭갈비</div></div>
+        </div>
+        <div class="menu-card" data-name="해물짬뽕탕" data-price="16,000원" data-desc="신선한 해산물이 가득! 시원한 국물이 술맛을 더욱 살려줍니다.">
+          <div class="menu-photo"><span class="best-badge">★ BEST</span><img src="menu-main-2.png" alt="해물짬뽕탕" loading="lazy"></div>
+          <div class="menu-info"><div class="name">해물짬뽕탕</div><div class="price">16,000원</div><div class="desc">시원하고 얼큰한 해물 한 그릇</div></div>
+        </div>
+        <div class="menu-card" data-name="오징어 버터구이" data-price="15,000원" data-desc="신선한 오징어에 고소한 버터향이 더해져 한 입만 먹어도 멈출 수 없는 맛.">
+          <div class="menu-photo"><span class="best-badge">★ BEST</span><img src="menu-main-3.png" alt="오징어 버터구이" loading="lazy"></div>
+          <div class="menu-info"><div class="name">오징어 버터구이</div><div class="price">15,000원</div><div class="desc">쫄깃하고 고소한 버터 향 가득</div></div>
+        </div>
+        <div class="menu-card" data-name="치즈 불닭" data-price="17,000원" data-desc="매콤한 닭고기와 고소한 치즈의 환상적인 만남.">
+          <div class="menu-photo"><img src="menu-borrom-1.png" alt="치즈 불닭" loading="lazy"></div>
+          <div class="menu-info"><div class="name">치즈 불닭</div><div class="price">17,000원</div><div class="desc">쭉쭉 늘어나는 매콤 치즈 불닭</div></div>
+        </div>
+        <div class="menu-card" data-name="모둠 숯불구이" data-price="24,000원" data-desc="삼겹살·목살·가브리살·항정살을 한 번에! 숯불향 가득한 최고의 조합.">
+          <div class="menu-photo"><img src="menu-borrom-2.png" alt="모둠 숯불구이" loading="lazy"></div>
+          <div class="menu-info"><div class="name">모둠 숯불구이</div><div class="price">24,000원</div><div class="desc">4가지 부위 숯불 모둠구이</div></div>
+        </div>
+        <div class="menu-card" data-name="나가사키 짬뽕" data-price="14,000원" data-desc="진한 국물에 해산물을 듬뿍 넣은 나가사키식 짬뽕.">
+          <div class="menu-photo"><img src="menu-borrom-3.png" alt="나가사키 짬뽕" loading="lazy"></div>
+          <div class="menu-info"><div class="name">나가사키 짬뽕</div><div class="price">14,000원</div><div class="desc">진하고 시원한 나가사키식 짬뽕</div></div>
+        </div>
+        <div class="menu-card" data-name="모둠 꼬치" data-price="19,000원" data-desc="닭꼬치·미트볼·베이컨아스파라거스 등 다양한 숯불 꼬치 모둠.">
+          <div class="menu-photo"><img src="menu-borrom-4.png" alt="모둠 꼬치" loading="lazy"></div>
+          <div class="menu-info"><div class="name">모둠 꼬치</div><div class="price">19,000원</div><div class="desc">술 한잔에 딱 맞는 숯불 꼬치 모둠</div></div>
+        </div>
+        <div class="menu-card" data-name="소고기 타다키" data-price="22,000원" data-desc="살짝 겉만 구워 육즙을 살린 소고기 타다키.">
+          <div class="menu-photo"><img src="menu-borrom-5.png" alt="소고기 타다키" loading="lazy"></div>
+          <div class="menu-info"><div class="name">소고기 타다키</div><div class="price">22,000원</div><div class="desc">부드럽고 고소한 소고기 타다키</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="eyebrow">Gallery</div><h2>더 많은 사진으로 우리 가게를 보여드려요</h2></div>
+      <p>네이버 스마트플레이스는 노출 공간이 한정돼 있어요. 여기에는 원하는 만큼 사진을 채울 수 있어요.</p>
+    </div>
+    <div class="gallery">
+      <div class="g big"><img src="pub-exterior.png" alt="매장 전경" loading="lazy"><span>매장 전경</span></div>
+      <div class="g"><img src="pub-interior.png" alt="홀 내부" loading="lazy"><span>홀 내부</span></div>
+      <div class="g"><img src="signature-menu.png" alt="대표 메뉴" loading="lazy"><span>대표 메뉴</span></div>
+      <div class="g"><img src="table-setting.png" alt="테이블 세팅" loading="lazy"><span>테이블 세팅</span></div>
+      <div class="g"><img src="dessert.png" alt="디저트" loading="lazy"><span>디저트</span></div>
+      <div class="g"><img src="group-table.png" alt="단체석" loading="lazy"><span>단체석</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="info">
+  <div class="wrap info-grid">
+    <div class="card">
+      <div class="eyebrow">Info</div>
+      <h2>오시는 길</h2>
+      <div class="info-list">
+        <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg><div><div class="k">주소</div>[매장 주소를 입력해주세요]</div></div>
+        <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5c0 8.3 6.7 15 15 15l2-4-5-2-2 2c-2.2-1-4-2.8-5-5l2-2-2-5-4 1Z"/></svg><div><div class="k">전화</div>[전화번호를 입력해주세요]</div></div>
+        <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div><div class="k">영업시간</div>매일 11:00 – 21:30 (브레이크타임 15:00–17:00)</div></div>
+      </div>
+      <a class="btn ghost" style="margin-top:18px" href="https://map.naver.com/p/entry/place/여기에_스마트플레이스_ID" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5l7 7-7 7"/></svg> 네이버 지도로 보기
+      </a>
+    </div>
+
+    <div class="card review-card">
+      <div class="stars">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 7 1-5 4.9 1.2 6.9L12 18l-6.3 3.1L7 14.2 2 9.3l7-1L12 2Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 7 1-5 4.9 1.2 6.9L12 18l-6.3 3.1L7 14.2 2 9.3l7-1L12 2Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 7 1-5 4.9 1.2 6.9L12 18l-6.3 3.1L7 14.2 2 9.3l7-1L12 2Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 7 1-5 4.9 1.2 6.9L12 18l-6.3 3.1L7 14.2 2 9.3l7-1L12 2Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 7 1-5 4.9 1.2 6.9L12 18l-6.3 3.1L7 14.2 2 9.3l7-1L12 2Z"/></svg>
+      </div>
+      <h2>네이버 리뷰, 여기서도 볼 수 있어요</h2>
+      <p style="color:var(--muted); margin-top:-4px;">저희 가게의 실제 방문 후기는 네이버 스마트플레이스에서 확인하실 수 있어요.</p>
+      <a class="btn wide" style="margin-top:8px" href="https://map.naver.com/p/entry/place/여기에_스마트플레이스_ID?c=review" target="_blank" rel="noopener">
+        네이버 리뷰 보러가기
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section id="event">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="eyebrow">Event</div><h2>리뷰 남기고 문자로 쿠폰 받기</h2></div>
+      <p>매장에 계시다면 리뷰 화면을 직원에게 보여주셔도 바로 쿠폰을 드려요. 포장·배달 손님은 아래로 신청해주세요.</p>
+    </div>
+    <div class="coupon">
+      <div class="coupon-box">
+        <div class="coupon-left">
+          <div class="eyebrow" style="color:#F4D9B8;">Review Event</div>
+          <h3>리뷰 남기고 서비스 쿠폰 받기</h3>
+          <ol class="steps">
+            <li><span class="num">1</span><span>네이버 스마트플레이스에 방문 후기를 남겨주세요.</span></li>
+            <li><span class="num">2</span><span>쿠폰 받으실 전화번호를 아래에 남겨주세요.</span></li>
+            <li><span class="num">3</span><span>사장님이 확인 후, 남겨주신 번호로 문자로 쿠폰을 보내드려요.</span></li>
+          </ol>
+          <a class="btn ghost" style="margin-top:10px; border-color:rgba(255,255,255,.5); color:#fff;" href="https://map.naver.com/p/entry/place/여기에_스마트플레이스_ID?c=review" target="_blank" rel="noopener">네이버 리뷰 쓰러가기</a>
+        </div>
+        <div class="coupon-right">
+          <form id="couponForm">
+            <label for="cName">이름</label>
+            <input id="cName" required placeholder="홍길동">
+            <label for="cPhone">쿠폰 받을 전화번호</label>
+            <input id="cPhone" type="tel" required placeholder="010-1234-5678">
+            <label for="cNote">참고 (리뷰에 남긴 닉네임, 방문 날짜 등)</label>
+            <textarea id="cNote" rows="2" placeholder="예: 방문일 9/18, 네이버 닉네임 맛있게냠냠"></textarea>
+            <label for="cShot">리뷰 스크린샷 (선택)</label>
+            <input id="cShot" type="file" accept="image/*">
+            <button type="submit" class="btn wide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6l9 6 9-6M3 6h18v12H3V6Z"/></svg>
+              쿠폰 신청하기
+            </button>
+            <div class="note">신청하시면 이 목록이 사장님 관리자 화면의 "리뷰 제출함"에 올라가요. 사장님이 확인 후 문자로 쿠폰을 보내드립니다.</div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>© <span id="year"></span> 오늘 한잔 · 이 페이지는 시안입니다 — 실제 주소·전화번호·사진으로 교체해주세요. · <a href="#" id="adminLink" style="text-decoration:underline;">관리자</a></footer>
+
+<section id="adminPanel" hidden style="background:var(--surface-2); border-top:1px solid var(--line);">
+  <div class="wrap" style="padding-block:40px;">
+    <div class="section-head">
+      <div><div class="eyebrow">Admin</div><h2>관리자</h2></div>
+      <button class="btn ghost" id="adminLock">잠그기</button>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;">
+      <h3 style="margin-top:0">리뷰 제출함</h3>
+      <p class="note" style="margin-top:-6px;">손님이 "이벤트" 화면에서 신청하면 여기에 쌓여요. 스크린샷을 확인하고, 쿠폰을 골라 문자로 보내주세요.</p>
+      <div id="reviewQueue" style="display:flex; flex-direction:column; gap:14px; margin-top:14px;"></div>
+      <p class="note" id="queueEmpty">아직 신청이 없어요.</p>
+    </div>
+
+    <div class="info-grid">
+      <div class="card">
+        <h3 style="margin-top:0">쿠폰 문자 직접 작성</h3>
+        <form id="smsForm" style="display:flex; flex-direction:column; gap:12px;">
+          <label for="aName">이름</label>
+          <input id="aName" placeholder="홍길동" required>
+          <label for="aPhone">전화번호</label>
+          <input id="aPhone" type="tel" placeholder="010-1234-5678" required>
+          <label for="aCoupon">쿠폰 종류</label>
+          <select id="aCoupon" style="padding:11px 13px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit;">
+            <option value="소주 1병">소주 1병</option>
+            <option value="콜라 1캔">콜라 1캔</option>
+            <option value="사이다 1캔">사이다 1캔</option>
+            <option value="direct">직접 입력</option>
+          </select>
+          <input id="aCouponCustom" placeholder="쿠폰 내용 직접 입력" hidden>
+          <div class="note" id="msgPreview" style="background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:12px; font-size:.85rem; white-space:pre-wrap;"></div>
+          <button type="submit" class="btn wide">문자 앱으로 보내기</button>
+          <div class="note">버튼을 누르면 이 기기의 문자 앱이 열려요. 거기서 보내기를 눌러야 실제로 발송됩니다 (자동 발송 아님).</div>
+        </form>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">처리 목록</h3>
+        <div id="couponLog" style="display:flex; flex-direction:column; gap:8px; font-size:.88rem;"></div>
+        <p class="note" id="logEmpty">아직 기록이 없어요. 문자를 보내면 여기에 자동으로 쌓여요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal-backdrop" id="pinBackdrop">
+  <div class="modal" style="max-width:360px;">
+    <div class="body">
+      <button class="close" id="pinClose">×</button>
+      <h3 style="margin:.2em 0 4px" id="authTitle">관리자 로그인</h3>
+      <p class="note" style="margin-bottom:14px" id="authHint">계정 정보는 이 기기(브라우저)에 저장돼요. 다른 기기에서 로그인하려면 그 기기에서 한 번 더 계정을 등록해주셔야 해요.</p>
+      <form id="pinForm" style="display:flex; flex-direction:column; gap:10px;">
+        <input id="idInput" type="text" placeholder="아이디" autocomplete="username" style="padding:11px 13px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit;">
+        <input id="pinInput" type="password" placeholder="비밀번호" autocomplete="current-password" style="padding:11px 13px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit;">
+        <input id="pinInput2" type="password" placeholder="비밀번호 확인" autocomplete="new-password" hidden style="padding:11px 13px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit;">
+        <button type="submit" class="btn wide" id="authSubmit">로그인</button>
+        <div class="note" id="pinError" style="color:var(--accent); display:none;">아이디 또는 비밀번호가 맞지 않아요.</div>
+        <div class="note" style="text-align:center;">
+          <a href="#" id="toRegister">처음이신가요? 계정 등록하기</a>
+          <a href="#" id="toLogin" hidden>계정이 있어요, 로그인하기</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="fab">
+  <div class="fab-panel" id="fabPanel">
+    <h4>예약 / 문의</h4>
+    <div class="chan">
+      <span>📌 예약 담당 카톡</span>
+      <a class="btn ghost" style="padding:6px 12px; font-size:.8rem;" href="http://pf.kakao.com/_여기에_카카오채널ID/chat" target="_blank" rel="noopener">채팅하기</a>
+    </div>
+    <div class="chan">
+      <span>📌 포장·배달 담당 카톡</span>
+      <a class="btn ghost" style="padding:6px 12px; font-size:.8rem;" href="http://pf.kakao.com/_여기에_또다른채널ID/chat" target="_blank" rel="noopener">채팅하기</a>
+    </div>
+    <form id="resForm">
+      <div class="row2">
+        <input id="rName" placeholder="이름" required>
+        <input id="rPhone" placeholder="연락처" required>
+      </div>
+      <div class="row2">
+        <input id="rDate" type="date" required>
+        <input id="rPeople" type="number" min="1" placeholder="인원" required>
+      </div>
+      <button type="submit" class="btn wide" style="margin-top:4px;">예약 요청 내용 만들기</button>
+    </form>
+    <div id="resSummaryBox" hidden style="margin-top:12px; padding:12px; background:var(--bg); border:1px solid var(--line); border-radius:10px; font-size:.82rem; white-space:pre-wrap;"></div>
+    <div class="note" id="resHint" hidden>예약 내용이 복사됐어요. 위의 카톡 채팅하기를 눌러 대화창에 붙여넣기(꾹 눌러서 붙여넣기) 해주세요.</div>
+  </div>
+  <button class="fab-btn" id="fabBtn" aria-label="카카오톡으로 문의">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.9 3 2.7 6.4 2.7 10.6c0 2.7 1.8 5.1 4.5 6.5l-1.1 4a.5.5 0 0 0 .75.56l4.6-3c.18 0 .36.01.55.01 5.1 0 9.3-3.4 9.3-7.6C21.3 6.4 17.1 3 12 3Z"/></svg>
+  </button>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="ph-big" id="modalPhoto"><img id="modalPhotoImg" src="" alt="" style="width:100%; height:100%; object-fit:cover; display:none;"></div>
+    <div class="body">
+      <button class="close" id="modalClose">×</button>
+      <h3 id="modalName" style="margin:.2em 0"></h3>
+      <div class="price" id="modalPrice" style="color:var(--accent); font-weight:700;"></div>
+      <p id="modalDesc" style="color:var(--muted)"></p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  const SLIDE_INTERVAL_MS = 3500;
+
+  const slides = Array.from(document.querySelectorAll('.hero .slide'));
+  const dotsWrap = document.querySelector('.dots');
+  slides.forEach((_, i) => {
+    const b = document.createElement('button');
+    if (i === 0) b.className = 'active';
+    b.addEventListener('click', () => showSlide(i));
+    dotsWrap.appendChild(b);
+  });
+  let heroIdx = 0;
+  function showSlide(i){
+    slides[heroIdx].classList.remove('active');
+    dotsWrap.children[heroIdx].classList.remove('active');
+    heroIdx = i;
+    slides[heroIdx].classList.add('active');
+    dotsWrap.children[heroIdx].classList.add('active');
+  }
+  document.getElementById('heroPrev').addEventListener('click', () => showSlide((heroIdx - 1 + slides.length) % slides.length));
+  document.getElementById('heroNext').addEventListener('click', () => showSlide((heroIdx + 1) % slides.length));
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduceMotion){
+    setInterval(() => showSlide((heroIdx + 1) % slides.length), SLIDE_INTERVAL_MS);
+  }
+
+  // 스크롤 시 상단 내비게이션을 투명(히어로 위) -> 불투명(본문 위)으로 전환
+  const siteHeader = document.querySelector('header.site');
+  function syncHeader(){ siteHeader.classList.toggle('scrolled', window.scrollY > 40); }
+  window.addEventListener('scroll', syncHeader, { passive:true });
+  syncHeader();
+
+  // 햄버거 메뉴 토글
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburgerBtn.addEventListener('click', () => {
+    const open = mobileMenu.hidden;
+    mobileMenu.hidden = !open;
+    hamburgerBtn.setAttribute('aria-expanded', String(open));
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    mobileMenu.hidden = true;
+    hamburgerBtn.setAttribute('aria-expanded', 'false');
+  }));
+
+  const track = document.getElementById('menuTrack');
+  const cards = Array.from(track.children);
+  let menuIdx = 0;
+  function slideMenu(){
+    const cardWidth = cards[0].getBoundingClientRect().width + 20;
+    menuIdx = (menuIdx + 1) % cards.length;
+    track.style.transform = `translateX(-${cardWidth * menuIdx}px)`;
+    if(menuIdx === cards.length - 1){
+      setTimeout(() => {
+        track.style.transition = 'none';
+        menuIdx = 0;
+        track.style.transform = 'translateX(0px)';
+        requestAnimationFrame(() => { track.style.transition = ''; });
+      }, 750);
+    }
+  }
+  if(!reduceMotion){ setInterval(slideMenu, SLIDE_INTERVAL_MS); }
+
+  const modal = document.getElementById('modalBackdrop');
+  cards.forEach(c => c.addEventListener('click', () => {
+    document.getElementById('modalName').textContent = c.dataset.name;
+    document.getElementById('modalPrice').textContent = c.dataset.price;
+    document.getElementById('modalDesc').textContent = c.dataset.desc;
+    const srcImg = c.querySelector('.menu-photo img');
+    const modalImg = document.getElementById('modalPhotoImg');
+    if(srcImg){
+      modalImg.src = srcImg.src;
+      modalImg.alt = srcImg.alt;
+      modalImg.style.display = 'block';
+      document.getElementById('modalPhoto').style.background = 'none';
+    } else {
+      modalImg.style.display = 'none';
+      document.getElementById('modalPhoto').style.background = getComputedStyle(c.querySelector('.menu-photo')).backgroundImage || getComputedStyle(c.querySelector('.menu-photo')).background;
+    }
+    modal.classList.add('open');
+  }));
+  document.getElementById('modalClose').addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', e => { if(e.target === modal) modal.classList.remove('open'); });
+
+  const fabBtn = document.getElementById('fabBtn');
+  const fabPanel = document.getElementById('fabPanel');
+  fabBtn.addEventListener('click', () => fabPanel.classList.toggle('open'));
+
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  // 예약 요청 -> 카카오톡으로 보낼 문구를 만들어 클립보드에 복사
+  document.getElementById('resForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = document.getElementById('rName').value;
+    const phone = document.getElementById('rPhone').value;
+    const date = document.getElementById('rDate').value;
+    const people = document.getElementById('rPeople').value;
+    const text = `[예약 요청]\n이름: ${name}\n연락처: ${phone}\n날짜: ${date}\n인원: ${people}명`;
+
+    const box = document.getElementById('resSummaryBox');
+    const hint = document.getElementById('resHint');
+    box.textContent = text;
+    box.hidden = false;
+    hint.hidden = false;
+
+    let copied = false;
+    try { await navigator.clipboard.writeText(text); copied = true; } catch(err){ copied = false; }
+    toast(copied ? '복사 완료! 위 카톡 채팅하기를 눌러 붙여넣어 주세요' : '위 내용을 길게 눌러 복사한 뒤, 카톡 채팅하기에 붙여넣어 주세요');
+  });
+
+  // ---- 관리자 계정 (이 기기의 저장소에 저장됩니다 - 어떤 호스팅에 올려도 동작해요)
+  const BOOTSTRAP_ID = 'ot_alex.yoon@mediatek.com';
+  const BOOTSTRAP_PW = '0000';
+
+  async function sha256(text){
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  const pinBackdrop = document.getElementById('pinBackdrop');
+  const adminPanel = document.getElementById('adminPanel');
+  let authMode = 'login';
+
+  function setAuthMode(mode){
+    authMode = mode;
+    const isRegister = mode === 'register';
+    document.getElementById('authTitle').textContent = isRegister ? '관리자 계정 등록' : '관리자 로그인';
+    document.getElementById('authSubmit').textContent = isRegister ? '등록하기' : '로그인';
+    document.getElementById('pinInput2').hidden = !isRegister;
+    document.getElementById('toRegister').hidden = isRegister;
+    document.getElementById('toLogin').hidden = !isRegister;
+    document.getElementById('pinError').style.display = 'none';
+  }
+  document.getElementById('toRegister').addEventListener('click', e => { e.preventDefault(); setAuthMode('register'); });
+  document.getElementById('toLogin').addEventListener('click', e => { e.preventDefault(); setAuthMode('login'); });
+
+  function openAdmin(){
+    let unlocked = false;
+    try { unlocked = sessionStorage.getItem('adminOk') === '1'; } catch(err){}
+    if(unlocked){ showAdminPanel(); } else { setAuthMode('login'); pinBackdrop.classList.add('open'); }
+  }
+  function showAdminPanel(){
+    adminPanel.hidden = false;
+    adminPanel.scrollIntoView({behavior:'smooth'});
+    renderLog();
+    renderQueue();
+  }
+  document.getElementById('adminLink').addEventListener('click', e => { e.preventDefault(); openAdmin(); });
+  document.getElementById('pinClose').addEventListener('click', () => pinBackdrop.classList.remove('open'));
+
+  function loadAccounts(){ try { return JSON.parse(localStorage.getItem('adminAccounts') || '{}'); } catch(err){ return {}; } }
+  function saveAccounts(obj){ try { localStorage.setItem('adminAccounts', JSON.stringify(obj)); } catch(err){} }
+
+  document.getElementById('pinForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const idVal = document.getElementById('idInput').value.trim();
+    const pw = document.getElementById('pinInput').value;
+    const errEl = document.getElementById('pinError');
+    errEl.style.display = 'none';
+    if(!idVal || !pw){ errEl.textContent = '아이디와 비밀번호를 입력해주세요.'; errEl.style.display = 'block'; return; }
+
+    const accounts = loadAccounts();
+
+    if(authMode === 'register'){
+      const pw2 = document.getElementById('pinInput2').value;
+      if(pw !== pw2){ errEl.textContent = '비밀번호가 서로 달라요.'; errEl.style.display = 'block'; return; }
+      if(accounts[idVal]){ errEl.textContent = '이미 등록된 아이디예요.'; errEl.style.display = 'block'; return; }
+      accounts[idVal] = { passwordHash: await sha256(pw), createdAt: Date.now() };
+      saveAccounts(accounts);
+      try { sessionStorage.setItem('adminOk','1'); } catch(err){}
+      pinBackdrop.classList.remove('open');
+      document.getElementById('idInput').value = ''; document.getElementById('pinInput').value = ''; document.getElementById('pinInput2').value = '';
+      toast('계정이 등록됐어요 (이 기기에 저장됨)');
+      showAdminPanel();
+      return;
+    }
+
+    const rec = accounts[idVal];
+    const hash = await sha256(pw);
+    const ok = rec ? rec.passwordHash === hash : (idVal === BOOTSTRAP_ID && pw === BOOTSTRAP_PW);
+    if(ok){
+      try { sessionStorage.setItem('adminOk','1'); } catch(err){}
+      pinBackdrop.classList.remove('open');
+      document.getElementById('idInput').value = ''; document.getElementById('pinInput').value = '';
+      showAdminPanel();
+    } else {
+      errEl.textContent = '아이디 또는 비밀번호가 맞지 않아요.';
+      errEl.style.display = 'block';
+    }
+  });
+
+  document.getElementById('adminLock').addEventListener('click', () => {
+    try { sessionStorage.removeItem('adminOk'); } catch(err){}
+    adminPanel.hidden = true;
+  });
+
+  // ---- 쿠폰 문자 직접 작성기
+  const couponSel = document.getElementById('aCoupon');
+  const couponCustom = document.getElementById('aCouponCustom');
+  couponSel.addEventListener('change', () => { couponCustom.hidden = couponSel.value !== 'direct'; updatePreview(); });
+  ['aName','aPhone'].forEach(id => document.getElementById(id).addEventListener('input', updatePreview));
+  couponCustom.addEventListener('input', updatePreview);
+  function currentCoupon(){ return couponSel.value === 'direct' ? (couponCustom.value || '쿠폰') : couponSel.value; }
+  function couponMessage(name, coupon){
+    return `[오늘 한잔] ${name}님, 소중한 리뷰 감사합니다! 다음 방문 시 사용 가능한 [${coupon}] 쿠폰입니다. 매장에서 이 문자를 보여주세요 :)`;
+  }
+  function updatePreview(){
+    const name = document.getElementById('aName').value || '고객';
+    document.getElementById('msgPreview').textContent = couponMessage(name, currentCoupon());
+  }
+  updatePreview();
+
+  function loadLog(){ try { return JSON.parse(localStorage.getItem('couponLog') || '[]'); } catch(err){ return []; } }
+  function saveLog(log){ try { localStorage.setItem('couponLog', JSON.stringify(log)); } catch(err){} }
+  function renderLog(){
+    const log = loadLog();
+    const wrap = document.getElementById('couponLog');
+    document.getElementById('logEmpty').style.display = log.length ? 'none' : 'block';
+    wrap.innerHTML = '';
+    log.slice().reverse().forEach((item, ri) => {
+      const i = log.length - 1 - ri;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 10px; background:var(--bg); border:1px solid var(--line); border-radius:10px;';
+      row.innerHTML = `<span>${item.name} · ${item.phone} · ${item.coupon}</span>`;
+      const del = document.createElement('button');
+      del.className = 'btn ghost'; del.style.padding = '4px 10px'; del.style.fontSize = '.75rem';
+      del.textContent = '삭제';
+      del.addEventListener('click', () => { const l = loadLog(); l.splice(i,1); saveLog(l); renderLog(); });
+      row.appendChild(del);
+      wrap.appendChild(row);
+    });
+  }
+
+  document.getElementById('smsForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('aName').value;
+    const phone = document.getElementById('aPhone').value.replace(/[^0-9+]/g,'');
+    const coupon = currentCoupon();
+    const msg = document.getElementById('msgPreview').textContent;
+    const log = loadLog();
+    log.push({ name, phone: document.getElementById('aPhone').value, coupon, at: new Date().toLocaleString() });
+    saveLog(log);
+    renderLog();
+    window.location.href = `sms:${phone}?body=${encodeURIComponent(msg)}`;
+    toast('문자 앱이 열립니다. 보내기를 눌러주세요');
+  });
+
+  // ---- 리뷰 제출함 (손님이 "이벤트"에서 신청한 내용 + 스크린샷)
+  function loadQueue(){ try { return JSON.parse(localStorage.getItem('reviewQueue') || '[]'); } catch(err){ return []; } }
+  function saveQueue(q){ try { localStorage.setItem('reviewQueue', JSON.stringify(q)); } catch(err){} }
+
+  function resizeImage(file, maxSize){
+    return new Promise((resolve) => {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = () => {
+        img.onload = () => {
+          let { width, height } = img;
+          if(width > maxSize || height > maxSize){
+            const scale = maxSize / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.onerror = () => resolve(null);
+        img.src = reader.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderQueue(){
+    const q = loadQueue().filter(item => item.status === 'pending');
+    const wrap = document.getElementById('reviewQueue');
+    document.getElementById('queueEmpty').style.display = q.length ? 'none' : 'block';
+    wrap.innerHTML = '';
+    q.slice().reverse().forEach(item => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; gap:14px; align-items:flex-start; padding:14px; background:var(--bg); border:1px solid var(--line); border-radius:14px; flex-wrap:wrap;';
+
+      const photoBox = document.createElement('div');
+      photoBox.style.cssText = 'width:88px; height:88px; flex:none; border-radius:10px; overflow:hidden; background:var(--surface-2); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:.7rem; text-align:center;';
+      if(item.photo){
+        const img = document.createElement('img');
+        img.src = item.photo; img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+        photoBox.appendChild(img);
+      } else {
+        photoBox.textContent = '사진 없음';
+      }
+
+      const info = document.createElement('div');
+      info.style.cssText = 'flex:1; min-width:180px;';
+      info.innerHTML = `<div style="font-weight:700;">${item.name} · ${item.phone}</div>
+        <div style="color:var(--muted); font-size:.85rem; margin-top:2px;">${item.note ? item.note : '(참고 내용 없음)'}</div>
+        <div style="color:var(--muted); font-size:.75rem; margin-top:4px;">${item.createdAt}</div>`;
+
+      const actions = document.createElement('div');
+      actions.style.cssText = 'display:flex; flex-direction:column; gap:8px; flex:none; min-width:170px;';
+      const sel = document.createElement('select');
+      sel.style.cssText = 'padding:9px 10px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font:inherit; font-size:.85rem;';
+      ['소주 1병','콜라 1캔','사이다 1캔'].forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+      const sendBtn = document.createElement('button');
+      sendBtn.className = 'btn wide'; sendBtn.style.fontSize = '.82rem'; sendBtn.style.padding = '9px 14px';
+      sendBtn.textContent = '문자로 쿠폰 보내기';
+      sendBtn.addEventListener('click', () => {
+        const phoneDigits = item.phone.replace(/[^0-9+]/g,'');
+        const msg = couponMessage(item.name, sel.value);
+        const q2 = loadQueue();
+        const target = q2.find(x => x.id === item.id);
+        if(target) target.status = 'sent';
+        saveQueue(q2);
+        const log = loadLog();
+        log.push({ name: item.name, phone: item.phone, coupon: sel.value, at: new Date().toLocaleString() });
+        saveLog(log);
+        renderLog();
+        renderQueue();
+        window.location.href = `sms:${phoneDigits}?body=${encodeURIComponent(msg)}`;
+        toast('문자 앱이 열립니다. 보내기를 눌러주세요');
+      });
+      actions.appendChild(sel);
+      actions.appendChild(sendBtn);
+
+      row.appendChild(photoBox);
+      row.appendChild(info);
+      row.appendChild(actions);
+      wrap.appendChild(row);
+    });
+  }
+
+  document.getElementById('couponForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = document.getElementById('cName').value;
+    const phone = document.getElementById('cPhone').value;
+    const note = document.getElementById('cNote').value;
+    const fileInput = document.getElementById('cShot');
+    const file = fileInput.files[0];
+
+    let photo = null;
+    if(file){ photo = await resizeImage(file, 900); }
+
+    const q = loadQueue();
+    q.push({
+      id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      name, phone, note, photo,
+      status: 'pending',
+      createdAt: new Date().toLocaleString()
+    });
+    saveQueue(q);
+
+    e.target.reset();
+    toast('신청 완료! 사장님 확인 후 문자로 쿠폰을 보내드려요');
+  });
+</script>
